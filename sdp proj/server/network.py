@@ -14,13 +14,10 @@ class UnoServer:
     playerList =[]
     playerHands = []
     top_card = []
-   
+    num_players = 0
     card_type = list(range(10))
     card_type += ["draw 2", "reverse"]
     isReversed =False
-
-    
-
     rounds=0;    
     num_iter_cards=3
 
@@ -28,6 +25,7 @@ class UnoServer:
     def start_game(self, num_players):
         
         #intialize game state
+        self.num_players = num_players
         self.list_players(num_players)
         self.create_deck()
         self.pass_cards()
@@ -51,26 +49,26 @@ class UnoServer:
         hand_with_no_cards= -1
         
         #this while loop checks if theres a winner
-        while hand_with_no_cards < 0:
-            self.resetRound()
+        
+            
             #goes thru the 4 players
-            while self.rounds < 4 and self.rounds >-1:
-                
+        while hand_with_no_cards < 0:
+                self.resetRound()
                 
                 #checks who's turn it be
-                    if(self.playerList[self.rounds].find("bot")>-1):
+                if(self.num_players <= self.rounds):
                         #goes thru bot turn protocol
-                            self.bot_turn(self.rounds)
-                    else:
+                            self.bot_turn()
+                else:
                         #goes thru player turn protocol
-                       self.player_turn(self.rounds)
+                       self.player_turn()
 
-                    self.check_condition(self.rounds)
-                    self.iter_rounds()
+                self.check_condition()
+                self.iter_rounds()
             
 
             #checks if someone won
-            hand_with_no_cards = self.isThereAWinner()
+                hand_with_no_cards = self.isThereAWinner()
         #tells the mf they won
         print(self.playerList[hand_with_no_cards]+" is the motherfucking winner")        
         
@@ -89,11 +87,7 @@ class UnoServer:
             else:
                 self.playerList.append("bot "+str(i+1))
     
-    def skip(self):
-        if self.isReversed:
-            self.rounds -=1
-        else:
-            self.rounds +=1
+
 
     #passes cards out to players
     def pass_cards(self):
@@ -117,9 +111,12 @@ class UnoServer:
 
 
     def resetRound(self):
-        if(self.isReversed):
-            self.rounds = 3
-        else:
+        if self.isReversed:
+
+            if self.rounds > 3:
+              self.rounds = 3
+        
+        elif self.rounds < 0:
             self.rounds = 0 
         
     #uses for loop to create deck
@@ -147,7 +144,7 @@ class UnoServer:
     #checks win condition
     def isThereAWinner(self):
         for i in range(4):
-            if len(self.playerHands[i]) ==0:
+            if len(self.playerHands[i]) == 0:
                 return i
         return -1
 
@@ -157,7 +154,7 @@ class UnoServer:
         else:
            self.rounds +=1 
 
-    def check_condition(self,hand_num):
+    def check_condition(self):
 
     
         if self.top_card[1] == 'draw 2':
@@ -166,13 +163,11 @@ class UnoServer:
             self.draw_card(self.rounds)
             self.iter_rounds()
         
-        """
+        
         elif self.top_card[1] == 'reverse':
-            self.playerHands = reversed(self.playerHands)
-            self.playerList = reversed(self.playerList)
             self.isReversed= not self.isReversed
-            self.iter_rounds()
-        """
+            
+        
 
     
 
@@ -181,12 +176,13 @@ class UnoServer:
 
 
     #bot mechnics, we might make this in matlab for more points
-    def bot_turn(self, hand_num):
+    def bot_turn(self):
  
-
+        print(len(self.playerHands))
 
         has_played = False
-        hand = self.playerHands[hand_num]
+        hands=self.playerHands
+        hand = hands[self.rounds]
         for i in range(len(hand)):
             if(self.cardIsValid(hand[i])):
                 self.deck.append(self.top_card)
@@ -194,28 +190,28 @@ class UnoServer:
                 has_played=True
                 break
         if(not has_played):
-            self.draw_card(hand_num)
+            self.draw_card(self.rounds)
         else:
-            self.playerHands[hand_num] = hand
+            self.playerHands[self.rounds] = hand
 
     #makes them draw a card 
-    def draw_card(self, hand_num):
-        
+    def draw_card(self):
+        print(self.rounds)
         drawn_card = self.deck.pop(0)
-        self.playerHands[hand_num].append(drawn_card)
+        self.playerHands[self.rounds].append(drawn_card)
                 
         
 
 
     #modify for server bs
-    def player_turn(self, hand_num):
+    def player_turn(self):
         
         
         
         playable= False
         cardToPlay = self.default_card_num
         hands = self.playerHands
-        hand= hands[hand_num]
+        hand= hands[self.rounds]
   
         
         
@@ -224,21 +220,21 @@ class UnoServer:
                 playable=True
                 break        
         if(not playable):
-            self.draw_card(hand_num)
+            self.draw_card(self.rounds)
             print("you had to draw, womp womp")
             return 0
         
 
     
-        while not(cardToPlay < len(hand)) or cardToPlay < 0:
+        while not(cardToPlay < len(hand)) or cardToPlay < 0 or not self.cardIsValid(hand[cardToPlay]):
             #print('\n' * 50)
             print(self.top_card)
             self.display_hand(hand)
            
-            cardToPlay = int(input("input a valid card(index), "+self.playerList[hand_num]))
+            cardToPlay = int(input("input a valid card(index), "+self.playerList[self.rounds]))
         
         self.top_card = hand.pop(cardToPlay)
-        self.playerHands[hand_num]= hand
+        self.playerHands[self.rounds]= hand
         
 
 
