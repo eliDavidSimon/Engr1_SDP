@@ -33,24 +33,46 @@ class UnoServer:
         self.create_deck()
         self.pass_cards()
         self.get_top_card()
+
+        colors = ["red", "blue", "yellow", "green"]
+        for i in colors:
+            self.player_hand[0].append([i, "reverse"])
+
+
+
+         
         self.play_game()
- 
+    
+
+
+
     def play_game(self):
         is_there_a_winner = self.isThereAWinner()
         while is_there_a_winner <0:
            
             self.turn()
-            
+            self.check_condition()
             
             self.iter_turn()
 
     
+    def check_condition(self):
+        type = self.top_card[1]
+        if(type =="reverse"):
+            self.shift *=-1
+        elif(type == "draw 2"):
+            self.iter_turn()
+            self.draw()
+            self.draw()
+            self.iter_turn()
+
+
     def turn(self):
         
         self.display()
         index_of_action = int(input("enter action, player " +str(self.rounds+1)+": "))
 
-        while index_of_action != -1 and ((index_of_action >=len(self.player_hand[self.rounds]) or index_of_action <0) and not self.cardIsValid(self.player_hand[self.rounds])):
+        while index_of_action != -1 and ((index_of_action >=len(self.player_hand[self.rounds]) or index_of_action <0) and (not self.cardIsValid(self.player_hand[self.rounds]))):
             self.display()
             print("enter valid num")
             index_of_action = int(input("enter action, player " +str(self.rounds+1)+": ")) 
@@ -59,10 +81,11 @@ class UnoServer:
             self.draw()
         else:
             self.deck.append(self.top_card)
+            self.top_card = self.player_hand[self.rounds].pop(index_of_action)
 
         
-    def draw():
-        pass
+    def draw(self):
+        self.player_hand[self.rounds].append(self.deck.pop(0))
 
     def cardIsValid(self, card):
         
