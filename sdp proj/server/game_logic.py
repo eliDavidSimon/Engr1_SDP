@@ -15,6 +15,7 @@ class UnoServer:
                  "0",
                  "draw2",
                  "reverse",
+                 "skip",
                  ]
     
     special_type = ["wild", "draw4"]
@@ -31,40 +32,50 @@ class UnoServer:
 
     def start_game(self):
         self.create_deck()
+
+        print(self.deck)
+        
+      
         self.pass_cards()
+        
         self.get_top_card()
 
-        colors = ["red", "blue", "yellow", "green"]
-        for i in colors:
-            self.player_hand[0].append([i, "reverse"])
 
-
-
-         
         self.play_game()
+
     
-
-
-
     def play_game(self):
         is_there_a_winner = self.isThereAWinner()
         while is_there_a_winner <0:
            
             self.turn()
             self.check_condition()
-            
-            self.iter_turn()
-
+            is_there_a_winner = self.isThereAWinner()
+            if not is_there_a_winner:
+                self.iter_turn()
+        print("player" + str(self.rounds+1)+"  is the motherfucking winner")
     
     def check_condition(self):
         type = self.top_card[1]
         if(type =="reverse"):
             self.shift *=-1
-        elif(type == "draw 2"):
+        elif(type == "draw2"):
             self.iter_turn()
             self.draw()
             self.draw()
+        elif(type == "skip"):
             self.iter_turn()
+        elif(type == "draw4"):
+            self.iter_turn()
+            self.draw()
+            self.draw()
+            self.draw()
+            self.draw()
+        elif len(self.player_hand) ==1:
+            print("uno")
+
+ 
+         
 
 
     def turn(self):
@@ -80,8 +91,16 @@ class UnoServer:
         if index_of_action == -1:
             self.draw()
         else:
-            self.deck.append(self.top_card)
-            self.top_card = self.player_hand[self.rounds].pop(index_of_action)
+            print(self.player_hand[self.rounds][index_of_action])
+            if self.player_hand[self.rounds][index_of_action][0] == "special":
+                color =input("rgby")
+                self.deck.append(self.top_card)
+                type = self.player_hand[self.rounds].pop(index_of_action)
+                type = type[1]
+                self.top_card =[color, type]
+            else:    
+                self.deck.append(self.top_card)
+                self.top_card = self.player_hand[self.rounds].pop(index_of_action)
 
         
     def draw(self):
@@ -91,7 +110,7 @@ class UnoServer:
         
         return self.top_card[0] == card[0] or self.top_card[1] == card[1]
 
-
+  
     def iter_turn(self):
         if self.shift > 0 and self.rounds == 3:
                 self.rounds = 0
@@ -135,7 +154,12 @@ class UnoServer:
 
                 #iterates 0-9, we need to make a 
                 for j in self.card_type:
-                    self.deck.append([i, str(j)])
+                    self.deck.append([i, j])
+
+
+        for i in range(32):
+            for j in self.special_type:
+                self.deck.append(["special", j])
         shuffle(self.deck)
 
 
